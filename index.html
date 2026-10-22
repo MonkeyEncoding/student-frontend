@@ -6,7 +6,7 @@
 <title>Student Records</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script>
   try {
     var t = localStorage.getItem('theme');
@@ -112,6 +112,58 @@
   .hint { color:var(--muted); font-size:.8rem; display:flex; justify-content:space-between; margin:-6px 0 14px; gap:10px; }
   .row { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
   @media (prefers-reduced-motion:reduce) { .skel { animation:none; } #bulk, #toast { transition:none; } }
+
+  /* ===== School theme ===== */
+  :root { --bg:#f3f7fa; --panel:#fff; --paper:#fdfdfb; --ink:#1f2a44; --muted:#5c6785; --line:#cdd7e6; --accent:#2b50aa; --on:#fff; --tint:#e3ebfb; --danger:#c8372d; --rule:#d6e4f5; --mline:#e5645d; --board:#244a3b; --frame:#a8743d; --chalk:#f4f1e6; --pencil:#f6c945; --hl:#fff1a8; }
+  [data-theme=dark] { --bg:#14211c; --panel:#1d2f27; --paper:#223a30; --ink:#eef3e8; --muted:#a3b8ab; --line:#33503f; --accent:#9db8ff; --on:#0c1a3a; --tint:#2b4a3c; --danger:#ff8a78; --rule:#2d4b3e; --mline:#b3605a; --board:#1a3a2d; --frame:#6f4d29; --hl:#4d4a1d; }
+  body { font-family:'Nunito',system-ui,sans-serif; background-color:var(--bg); background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px); background-size:28px 28px; }
+  h1, .card h3, dialog h2, .stats b, .state { font-family:'Patrick Hand','Nunito',sans-serif; font-weight:400; }
+  kbd { font-family:'Nunito',sans-serif; }
+
+  .top { align-items:center; background-color:var(--board); color:var(--chalk); border:10px solid var(--frame); border-radius:10px; padding:18px 24px; box-shadow:inset 0 0 40px rgba(0,0,0,.35), 0 5px 0 rgba(0,0,0,.15);
+    background-image:radial-gradient(ellipse at 15% 0%,rgba(255,255,255,.08),transparent 60%),radial-gradient(ellipse at 95% 100%,rgba(255,255,255,.06),transparent 50%); }
+  h1 { color:var(--chalk); font-size:clamp(2.3rem,6vw,3.5rem); letter-spacing:.01em; margin:0; text-shadow:0 0 1px rgba(255,255,255,.6); }
+  .date { margin:2px 0 10px; color:rgba(244,241,230,.75); }
+  .stats { color:rgba(244,241,230,.85); }
+  .stats b { color:#ffe27a; font-size:1.6rem; }
+  .top button { background:transparent; color:var(--chalk); border:2px dashed rgba(244,241,230,.55); }
+  .top button:hover { background:rgba(255,255,255,.1); }
+  .top .primary { background:var(--pencil); color:#3a2b00; border:2px solid #d9a91d; }
+  .top .primary kbd { background:rgba(255,255,255,.5); color:#3a2b00; border-color:#d9a91d; }
+
+  button { border-width:2px; border-radius:10px; }
+  .primary { background:var(--pencil); border-color:#d9a91d; color:#3a2b00; box-shadow:0 3px 0 #c79a14; }
+  .primary:hover { background:var(--pencil); filter:brightness(1.05); }
+  .primary:active { transform:translateY(2px); box-shadow:0 1px 0 #c79a14; }
+  .bar { background:color-mix(in srgb,var(--bg) 88%,transparent); backdrop-filter:blur(6px); }
+  .search input, select { border-width:2px; background:var(--panel); }
+  .seg { border-width:2px; }
+
+  .card { --cardbg:var(--paper); --margin:linear-gradient(90deg,transparent 43px,var(--mline) 43px,var(--mline) 45px,transparent 45px); --ruled:linear-gradient(transparent 25px,var(--rule) 25px);
+    background-color:var(--cardbg); background-image:var(--margin),var(--ruled); background-size:100% 100%,100% 26px; background-repeat:no-repeat,repeat-y; background-position:0 0,0 12px;
+    border-radius:6px 12px 12px 6px; padding:12px 14px 10px; box-shadow:0 2px 0 rgba(31,42,68,.08),0 6px 14px rgba(31,42,68,.06); }
+  .card.selected { --cardbg:var(--hl); border-color:#d9a91d; }
+  .card h3 { font-size:1.4rem; line-height:26px; }
+  .card p { line-height:26px; margin:0; }
+  .foot { background:var(--cardbg); }
+  .compact .card { background-image:var(--margin); background-size:100% 100%; background-position:0 0; padding:8px 14px; }
+  .compact .card h3, .compact .card p { line-height:1.4; }
+  .chip { border-radius:5px; transform:rotate(-1.5deg); }
+
+  .status { border:2px solid currentColor; border-radius:6px; transform:rotate(-3deg); letter-spacing:.02em; }
+  .s-present::before, .pk-present::before { content:'\2605  '; }
+  .s-absent::before, .pk-absent::before { content:'\2717  '; }
+  .s-late::before, .pk-late::before { content:'\23F0  '; }
+
+  .state { border:2px dashed var(--line); background:var(--panel); font-size:1.3rem; }
+  #bulk { background:var(--board); color:var(--chalk); border:4px solid var(--frame); border-radius:12px; }
+  #toast { background:#fff1a8; color:#3b3200; border:1px solid #d9a91d; border-radius:4px; transform:translate(-50%,-30px) rotate(-1deg); box-shadow:0 8px 16px rgba(0,0,0,.25); }
+  #toast.show { transform:translate(-50%,0) rotate(-1deg); }
+  #toast.error { background:var(--danger); color:#fff; border-color:transparent; }
+  dialog { border:3px solid var(--ink); border-radius:8px 16px 16px 8px; padding:22px 22px 22px 44px; background-color:var(--paper);
+    background-image:linear-gradient(90deg,transparent 30px,var(--mline) 30px,var(--mline) 32px,transparent 32px); }
+  dialog h2 { font-size:1.9rem; }
+  dialog input:not([type=radio]), dialog textarea { border-width:2px; background:var(--panel); }
 </style>
 </head>
 <body>
@@ -119,6 +171,7 @@
   <div class="top">
     <div>
       <h1>Student Records</h1>
+      <p class="date" id="today"></p>
       <div class="stats" aria-live="polite"><span><b id="sTotal">0</b> records</span><span><b id="sToday">0</b> added today</span><span><b id="sPresent">0</b> present</span><span><b id="sAbsent">0</b> absent</span><span><b id="sLate">0</b> late</span></div>
     </div>
     <div class="actions">
@@ -284,7 +337,7 @@
     list.replaceChildren();
     if (!shown.length) {
       list.className = '';
-      const msg = live.length ? 'No records match your search.' : 'No records yet. Create the first one.';
+      const msg = live.length ? 'No records match your search.' : 'The roll is empty. Add your first record.';
       const kids = [el('p', { textContent: msg })];
       if (!live.length) { const b = el('button', { className: 'primary', textContent: 'New record' }); b.onclick = () => openEditor(); kids.push(b); }
       list.appendChild(el('div', { className: 'state' }, kids));
@@ -422,6 +475,7 @@
     else if (e.key === 'Escape' && !$('editor').open) { if (document.activeElement === $('search') && $('search').value) { $('search').value = ''; render(); } else if (selected.size) { selected.clear(); render(); } }
   });
   syncTheme();
+  $('today').textContent = 'Roll call for ' + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   load();
 </script>
 </body>
