@@ -1,80 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Database Project</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
-        .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
-        input, textarea, button { display: block; width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9eef3;
+    --surface: #ffffff;
+    --ink: #17212b;
+    --muted: #5d6b7a;
+    --line: #d3dce5;
+    --accent: #0f766e;
+    --accent-ink: #ffffff;
+    --danger: #b42318;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Manrope', system-ui, sans-serif; line-height: 1.5;
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 48px 20px 80px; }
+  h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+
+  form, .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px;
+  }
+  label { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 6px; }
+  input, textarea {
+    width: 100%; font: inherit; color: inherit; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; margin-bottom: 14px;
+  }
+  textarea { resize: vertical; min-height: 84px; }
+  input:focus-visible, textarea:focus-visible, button:focus-visible {
+    outline: 3px solid rgba(15,118,110,.35); outline-offset: 1px; border-color: var(--accent);
+  }
+  button {
+    font: inherit; font-weight: 700; cursor: pointer; padding: 9px 16px;
+    border-radius: 8px; border: 1px solid var(--line); background: #fff; color: var(--ink);
+  }
+  button:hover { background: #f3f6f9; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .primary:hover { background: #0b5f58; }
+  .danger { color: var(--danger); }
+  .danger:hover { background: #fdf0ee; border-color: #f0c4be; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .list-head { display: flex; align-items: baseline; justify-content: space-between; margin: 36px 0 12px; gap: 12px; }
+  .list-head h2 { margin: 0; font-size: 1.25rem; }
+  #count { color: var(--muted); font-size: .9rem; }
+  #search { margin-bottom: 14px; }
+
+  .card { margin-bottom: 12px; }
+  .card h3 { margin: 0 0 4px; font-size: 1.05rem; }
+  .card p { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .meta { color: var(--muted); font-size: .8rem; margin-bottom: 12px; }
+  .card.editing input, .card.editing textarea { margin-bottom: 10px; }
+  .empty { text-align: center; color: var(--muted); padding: 28px 12px; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 8px;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.error { background: var(--danger); }
+  @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+</style>
 </head>
 <body>
-    <h2>Add New Record</h2>
-    <form id="dataForm">
-        <input type="text" id="title" placeholder="Record Title" required>
-        <input type="text" id="content" placeholder="Record Content" required>
-        <button type="submit">Submit to Database</button>
-    </form>
+<main>
+  <h1>Student Records</h1>
+  <p class="sub">Add, edit and delete records stored in MongoDB.</p>
 
-    <h2>Database Records</h2>
-    <div id="recordsContainer">Loading...</div>
+  <form id="dataForm">
+    <label for="title">Title</label>
+    <input type="text" id="title" maxlength="100" required>
+    <label for="content">Content</label>
+    <textarea id="content" maxlength="1000" required></textarea>
+    <button type="submit" class="primary" id="addBtn">Add record</button>
+  </form>
 
-    <script>
-        const VERCEL_API_URL = 'https://student-api-backend-eight.vercel.app/api';
+  <div class="list-head">
+    <h2>Records</h2>
+    <span id="count"></span>
+  </div>
+  <input type="search" id="search" placeholder="Search records" aria-label="Search records">
+  <div id="recordsContainer"><div class="empty">Loading records...</div></div>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
 
-        async function loadRecords() {
-            try {
-                const response = await fetch(VERCEL_API_URL);
-                const records = await response.json();
+<script>
+  // Replace with your Vercel API URL if it ever changes
+  const API = 'https://student-api-backend-eight.vercel.app/api';
 
-                const container = document.getElementById('recordsContainer');
-                container.innerHTML = '';
+  const container = document.getElementById('recordsContainer');
+  const countEl = document.getElementById('count');
+  const searchEl = document.getElementById('search');
+  let records = [];
+  let editingId = null;
 
-                if (records.length === 0) {
-                    container.innerHTML = '<p>No records found.</p>';
-                    return;
-                }
+  function toast(message, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = message;
+    t.className = 'show' + (isError ? ' error' : '');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => { t.className = ''; }, 2500);
+  }
 
-                records.forEach(record => {
-                    const div = document.createElement('div');
-                    div.className = 'card';
+  async function request(url, options) {
+    const res = await fetch(url, options);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+    return data;
+  }
 
-                    const strong = document.createElement('strong');
-                    strong.textContent = record.title;
+  async function loadRecords() {
+    try {
+      records = await request(API);
+      render();
+    } catch (err) {
+      container.innerHTML = '';
+      const d = document.createElement('div');
+      d.className = 'empty';
+      d.textContent = 'Could not load records. Check your connection and the API URL, then refresh.';
+      container.appendChild(d);
+    }
+  }
 
-                    div.appendChild(strong);
-                    div.appendChild(document.createElement('br'));
-                    div.appendChild(document.createTextNode(record.content));
-                    container.appendChild(div);
-                });
-            } catch (error) {
-                document.getElementById('recordsContainer').innerText = 'Error loading records.';
-            }
-        }
+  function el(tag, props, children) {
+    const node = document.createElement(tag);
+    Object.assign(node, props || {});
+    (children || []).forEach(c => node.appendChild(c));
+    return node;
+  }
 
-        document.getElementById('dataForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+  function render() {
+    const q = searchEl.value.trim().toLowerCase();
+    const shown = records.filter(r =>
+      r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q));
+    countEl.textContent = records.length + (records.length === 1 ? ' record' : ' records');
+    container.innerHTML = '';
 
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
+    if (shown.length === 0) {
+      container.appendChild(el('div', {
+        className: 'empty',
+        textContent: records.length === 0 ? 'No records yet. Add your first one above.' : 'No records match your search.'
+      }));
+      return;
+    }
+    shown.forEach(r => container.appendChild(r._id === editingId ? editCard(r) : viewCard(r)));
+  }
 
-            try {
-                await fetch(VERCEL_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, content })
-                });
+  function viewCard(r) {
+    const edited = r.updatedAt !== r.createdAt ? ' (edited)' : '';
+    const editBtn = el('button', { textContent: 'Edit', onclick: () => { editingId = r._id; render(); } });
+    const delBtn = el('button', { textContent: 'Delete', className: 'danger', onclick: () => remove(r, delBtn) });
+    return el('div', { className: 'card' }, [
+      el('h3', { textContent: r.title }),
+      el('div', { className: 'meta', textContent: new Date(r.createdAt).toLocaleString() + edited }),
+      el('p', { textContent: r.content }),
+      el('div', { className: 'row' }, [editBtn, delBtn])
+    ]);
+  }
 
-                document.getElementById('dataForm').reset();
-                loadRecords();
-            } catch (error) {
-                alert('Failed to submit record.');
-            }
+  function editCard(r) {
+    const title = el('input', { type: 'text', value: r.title, maxLength: 100 });
+    const content = el('textarea', { value: r.content, maxLength: 1000 });
+    const save = el('button', { textContent: 'Save changes', className: 'primary' });
+    const cancel = el('button', { textContent: 'Cancel', onclick: () => { editingId = null; render(); } });
+    save.onclick = async () => {
+      if (!title.value.trim() || !content.value.trim()) return toast('Title and content are required', true);
+      save.disabled = true;
+      try {
+        await request(API + '?id=' + r._id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: title.value, content: content.value })
         });
+        editingId = null;
+        await loadRecords();
+        toast('Changes saved');
+      } catch (err) { toast(err.message, true); save.disabled = false; }
+    };
+    return el('div', { className: 'card editing' }, [
+      el('label', { textContent: 'Title' }), title,
+      el('label', { textContent: 'Content' }), content,
+      el('div', { className: 'row' }, [save, cancel])
+    ]);
+  }
 
-        loadRecords();
-    </script>
+  async function remove(r, btn) {
+    if (!confirm('Delete "' + r.title + '"? This cannot be undone.')) return;
+    btn.disabled = true;
+    try {
+      await request(API + '?id=' + r._id, { method: 'DELETE' });
+      await loadRecords();
+      toast('Record deleted');
+    } catch (err) { toast(err.message, true); btn.disabled = false; }
+  }
+
+  document.getElementById('dataForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('addBtn');
+    btn.disabled = true;
+    try {
+      await request(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: document.getElementById('title').value,
+          content: document.getElementById('content').value
+        })
+      });
+      e.target.reset();
+      await loadRecords();
+      toast('Record added');
+    } catch (err) { toast(err.message, true); }
+    btn.disabled = false;
+  });
+
+  searchEl.addEventListener('input', render);
+  loadRecords();
+</script>
 </body>
 </html>
