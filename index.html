@@ -6,184 +6,153 @@
 <title>Student Records</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  try {
+    var t = localStorage.getItem('theme');
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  } catch (e) { document.documentElement.dataset.theme = 'light'; }
+</script>
 <style>
-  :root {
-    --bg: #eef1f7; --panel: #ffffff; --ink: #1b2233; --muted: #646f85;
-    --line: #d9dfeb; --accent: #2149d1; --accent-ink: #fff; --tint: #e7edff;
-    --danger: #c0301f; --danger-tint: #fdeeec; --field: #fff;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #12172a; --panel: #1b2236; --ink: #e8ecf6; --muted: #9aa5bf;
-      --line: #2e3854; --accent: #6f8cff; --accent-ink: #0d1330; --tint: #25305a;
-      --danger: #ff7a6b; --danger-tint: #3a2227; --field: #141a2d;
-    }
-  }
+  :root { color-scheme: light; --bg:#eff3f1; --panel:#fff; --ink:#13201c; --muted:#5b6b66; --line:#d5dfdb; --accent:#0b7a5e; --on:#fff; --tint:#def2eb; --danger:#c2371f; --tagL:90%; --tagS:60%; --tagT:#1d2b27; }
+  [data-theme=dark] { color-scheme: dark; --bg:#0e1614; --panel:#16211e; --ink:#e6efec; --muted:#93a7a0; --line:#26352f; --accent:#35c79b; --on:#07241b; --tint:#1c3a30; --danger:#ff8068; --tagL:24%; --tagS:35%; --tagT:#e6efec; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Figtree', system-ui, sans-serif; line-height: 1.5; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 20px 110px; }
-  header { margin-bottom: 28px; }
-  h1 { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 6px; }
-  .sub { color: var(--muted); margin: 0; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:'Hanken Grotesk',system-ui,sans-serif; line-height:1.5; }
+  .wrap { max-width:1120px; margin:0 auto; padding:28px 20px 120px; }
+  :focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  button { font:inherit; font-weight:600; cursor:pointer; padding:8px 14px; border-radius:9px; border:1px solid var(--line); background:var(--panel); color:var(--ink); }
+  button:hover { background:var(--tint); }
+  button:disabled { opacity:.55; cursor:wait; }
+  .primary { background:var(--accent); border-color:var(--accent); color:var(--on); }
+  .primary:hover { background:var(--accent); filter:brightness(1.1); }
+  .ghost { border-color:transparent; background:transparent; }
+  .danger { color:var(--danger); }
+  kbd { font:600 .75rem 'Hanken Grotesk',sans-serif; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:0 5px; color:var(--muted); background:var(--panel); }
 
-  .layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
-  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
-  aside.panel { position: sticky; top: 20px; }
-  @media (max-width: 800px) { aside.panel { position: static; } }
-  h2 { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-size: 1.2rem; margin: 0 0 14px; }
+  .top { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:22px; }
+  h1 { font-family:'Fraunces',serif; font-size:clamp(2rem,5vw,3.1rem); line-height:1; letter-spacing:-.02em; margin:0 0 8px; }
+  .stats { color:var(--muted); display:flex; gap:18px; flex-wrap:wrap; font-size:.92rem; }
+  .stats b { color:var(--ink); font-size:1.05rem; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
 
-  label { display: block; font-weight: 600; font-size: .88rem; margin-bottom: 5px; }
-  input[type=text], input[type=search], textarea, select {
-    width: 100%; font: inherit; color: inherit; background: var(--field);
-    border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; margin-bottom: 14px;
-  }
-  textarea { resize: vertical; min-height: 110px; }
-  .hint { color: var(--muted); font-size: .8rem; margin: -8px 0 14px; text-align: right; }
-  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .bar { position:sticky; top:0; z-index:4; display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:10px 0; background:var(--bg); }
+  .search { flex:1 1 240px; position:relative; }
+  .search input { width:100%; font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 40px 10px 14px; }
+  .search kbd { position:absolute; right:10px; top:50%; transform:translateY(-50%); }
+  select { font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:9px 10px; }
+  .seg { display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .seg button { border:0; border-radius:0; background:var(--panel); }
+  .seg button[aria-pressed=true] { background:var(--accent); color:var(--on); }
+  .selrow { display:flex; align-items:center; justify-content:space-between; margin:6px 0 12px; color:var(--muted); font-size:.9rem; }
+  .selrow label { display:flex; align-items:center; gap:8px; font-weight:600; color:var(--ink); cursor:pointer; }
+  input[type=checkbox] { width:19px; height:19px; accent-color:var(--accent); margin:0; cursor:pointer; }
+  .chip.on { outline:2px solid var(--accent); }
+  .filterbar { display:none; margin-bottom:10px; gap:8px; align-items:center; }
+  .filterbar.show { display:flex; }
 
-  button { font: inherit; font-weight: 600; cursor: pointer; padding: 9px 15px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
-  button:hover { background: var(--tint); }
-  button:disabled { opacity: .55; cursor: wait; }
-  .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  .primary:hover { filter: brightness(1.1); background: var(--accent); }
-  .full { width: 100%; }
-  .danger { color: var(--danger); }
-  .danger:hover { background: var(--danger-tint); }
-  .danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
-  .danger-solid:hover { background: var(--danger); filter: brightness(1.1); }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
+  .grid.compact { grid-template-columns:1fr; gap:6px; }
+  .card { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; align-content:start; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .card.selected { background:var(--tint); border-color:var(--accent); }
+  .card h3 { font-family:'Fraunces',serif; font-size:1.1rem; line-height:1.25; margin:0; overflow-wrap:anywhere; }
+  .card p { margin:6px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .card .main { min-width:0; }
+  .foot { grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); color:var(--muted); font-size:.8rem; }
+  .foot button { padding:4px 10px; font-size:.85rem; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .chip { border:0; padding:2px 9px; border-radius:999px; font-size:.78rem; font-weight:600; color:var(--tagT); background:hsl(var(--h) var(--tagS) var(--tagL)); }
+  .chip:hover { filter:brightness(.95); background:hsl(var(--h) var(--tagS) var(--tagL)); }
+  mark { background:hsl(48 95% 62% / .55); color:inherit; border-radius:3px; padding:0 1px; }
+  .compact .card { grid-template-columns:auto 1fr auto; align-items:center; padding:9px 14px; }
+  .compact .card p { margin:0; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+  .compact .foot { grid-column:auto; margin:0; padding:0; border:0; }
+  .compact .tags { margin-top:4px; }
+  @media (max-width:640px) { .compact .card { grid-template-columns:auto 1fr; } .compact .foot { grid-column:1 / -1; } }
 
-  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-  .toolbar input[type=search] { flex: 1 1 180px; margin: 0; }
-  .toolbar select { width: auto; margin: 0; }
-  .selectall { display: flex; align-items: center; gap: 8px; font-weight: 600; margin: 0 0 12px; cursor: pointer; }
-  .meta-line { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: .9rem; }
-  input[type=checkbox] { width: 19px; height: 19px; accent-color: var(--accent); cursor: pointer; margin: 0; flex: none; }
+  .skel { height:150px; border-radius:12px; background:linear-gradient(100deg,var(--panel) 30%,var(--tint) 50%,var(--panel) 70%); background-size:300% 100%; animation:sh 1.4s infinite; border:1px solid var(--line); }
+  @keyframes sh { from { background-position:100% 0; } to { background-position:0 0; } }
+  .state { text-align:center; padding:48px 16px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); }
+  .state p { margin:0 0 14px; }
+  .more { display:block; margin:18px auto 0; }
 
-  .card { display: flex; gap: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
-  .card.selected { background: var(--tint); border-color: var(--accent); }
-  .card .body { flex: 1; min-width: 0; }
-  .card h3 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
-  .card .when { color: var(--muted); font-size: .8rem; margin: 2px 0 8px; }
-  .card p { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .card.editing { display: block; border-color: var(--accent); }
-  .card.editing textarea { min-height: 90px; }
-  .empty { text-align: center; color: var(--muted); padding: 40px 12px; border: 1px dashed var(--line); border-radius: 12px; }
+  #bulk { position:fixed; left:50%; bottom:22px; transform:translate(-50%,100px); opacity:0; pointer-events:none; display:flex; gap:10px; align-items:center; background:var(--ink); color:var(--bg); padding:10px 12px 10px 18px; border-radius:14px; box-shadow:0 12px 32px rgba(0,0,0,.28); transition:.2s; z-index:6; max-width:calc(100vw - 20px); }
+  #bulk.show { transform:translate(-50%,0); opacity:1; pointer-events:auto; }
+  #bulk button { background:transparent; color:inherit; border-color:rgba(128,128,128,.5); }
+  #bulk .del { background:var(--danger); border-color:var(--danger); color:#fff; }
+  #toast { position:fixed; top:16px; left:50%; transform:translate(-50%,-30px); opacity:0; pointer-events:none; display:flex; gap:12px; align-items:center; background:var(--ink); color:var(--bg); padding:9px 14px 9px 18px; border-radius:12px; transition:.2s; z-index:8; }
+  #toast.show { transform:translate(-50%,0); opacity:1; pointer-events:auto; }
+  #toast.error { background:var(--danger); color:#fff; }
+  #toast button { padding:3px 10px; background:transparent; color:inherit; border-color:rgba(128,128,128,.6); }
 
-  #bulkbar {
-    position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 90px); opacity: 0; pointer-events: none;
-    display: flex; gap: 12px; align-items: center; background: var(--ink); color: var(--bg);
-    padding: 10px 12px 10px 18px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    transition: transform .2s, opacity .2s; max-width: calc(100vw - 24px);
-  }
-  #bulkbar.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
-  #bulkbar button { background: transparent; color: inherit; border-color: rgba(255,255,255,.35); }
-  #bulkbar button:hover { background: rgba(255,255,255,.12); }
-  #bulkbar .danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
-
-  #toast { position: fixed; top: 18px; left: 50%; transform: translate(-50%, -20px); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 5; }
-  #toast.show { opacity: 1; transform: translate(-50%, 0); }
-  #toast.error { background: var(--danger); color: #fff; }
-
-  dialog { border: 1px solid var(--line); border-radius: 14px; padding: 22px; background: var(--panel); color: var(--ink); max-width: 400px; width: calc(100% - 32px); }
-  dialog::backdrop { background: rgba(10, 15, 30, .55); }
-  dialog h2 { margin-bottom: 6px; }
-  dialog p { margin: 0 0 18px; color: var(--muted); }
-  dialog .row { justify-content: flex-end; }
-  @media (prefers-reduced-motion: reduce) { #bulkbar, #toast { transition: none; } }
+  dialog { border:1px solid var(--line); border-radius:16px; background:var(--panel); color:var(--ink); padding:22px; width:min(520px,calc(100% - 28px)); }
+  dialog::backdrop { background:rgba(6,12,10,.6); }
+  dialog h2 { font-family:'Fraunces',serif; margin:0 0 14px; }
+  dialog label { display:block; font-weight:600; font-size:.88rem; margin-bottom:5px; }
+  dialog input, dialog textarea { width:100%; font:inherit; color:inherit; background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin-bottom:12px; }
+  dialog textarea { min-height:150px; resize:vertical; }
+  .hint { color:var(--muted); font-size:.8rem; display:flex; justify-content:space-between; margin:-6px 0 14px; gap:10px; }
+  .row { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+  @media (prefers-reduced-motion:reduce) { .skel { animation:none; } #bulk, #toast { transition:none; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>Student Records</h1>
-    <p class="sub">Create, edit and delete records stored in MongoDB.</p>
-  </header>
-
-  <div class="layout">
-    <aside class="panel">
-      <h2>New record</h2>
-      <form id="dataForm">
-        <label for="title">Title</label>
-        <input type="text" id="title" maxlength="100" required>
-        <label for="content">Content</label>
-        <textarea id="content" maxlength="1000" required></textarea>
-        <div class="hint"><span id="chars">0</span> / 1000</div>
-        <button type="submit" class="primary full" id="addBtn">Add record</button>
-      </form>
-    </aside>
-
-    <main>
-      <div class="toolbar">
-        <input type="search" id="search" placeholder="Search records" aria-label="Search records">
-        <select id="sort" aria-label="Sort records">
-          <option value="new">Newest first</option>
-          <option value="old">Oldest first</option>
-          <option value="az">Title A to Z</option>
-        </select>
-      </div>
-      <div class="meta-line">
-        <label class="selectall"><input type="checkbox" id="selectAll"> Select all</label>
-        <span id="count"></span>
-      </div>
-      <div id="list"><div class="empty">Loading records...</div></div>
-    </main>
-  </div>
-</div>
-
-<div id="bulkbar" role="region" aria-label="Bulk actions">
-  <strong id="selCount"></strong>
-  <button id="clearSel">Clear</button>
-  <button id="delSel" class="danger-solid">Delete selected</button>
-</div>
-<div id="toast" role="status" aria-live="polite"></div>
-
-<dialog id="confirm">
-  <form method="dialog">
-    <h2 id="dlgTitle"></h2>
-    <p id="dlgText"></p>
-    <div class="row">
-      <button value="cancel">Cancel</button>
-      <button value="ok" class="danger-solid" id="dlgOk">Delete</button>
+  <div class="top">
+    <div>
+      <h1>Student Records</h1>
+      <div class="stats" aria-live="polite"><span><b id="sTotal">0</b> records</span><span><b id="sToday">0</b> added today</span><span><b id="sTags">0</b> tags</span></div>
     </div>
+    <div class="actions">
+      <button id="themeBtn" class="ghost" aria-label="Switch theme">Dark mode</button>
+      <button id="exportBtn">Export CSV</button>
+      <button id="newBtn" class="primary">New record <kbd>N</kbd></button>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="search"><input type="search" id="search" placeholder="Search titles, text or #tags" aria-label="Search records"><kbd>/</kbd></div>
+    <select id="sort" aria-label="Sort records"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="az">Title A to Z</option></select>
+    <div class="seg" role="group" aria-label="View"><button id="vCards" aria-pressed="true">Cards</button><button id="vList" aria-pressed="false">Compact</button></div>
+  </div>
+
+  <div class="filterbar" id="tagbar"></div>
+  <div class="selrow"><label><input type="checkbox" id="selAll"> Select all</label><span id="count"></span></div>
+  <div id="list" class="grid"></div>
+</div>
+
+<div id="bulk" role="region" aria-label="Bulk actions"><strong id="selCount" aria-live="polite"></strong><button id="clearSel">Clear</button><button id="delSel" class="del">Delete selected</button></div>
+<div id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastAct" hidden>Undo</button></div>
+
+<dialog id="editor">
+  <form id="form">
+    <h2 id="edTitle">New record</h2>
+    <label for="fTitle">Title</label>
+    <input id="fTitle" maxlength="100" required>
+    <label for="fContent">Content</label>
+    <textarea id="fContent" maxlength="1000" required></textarea>
+    <div class="hint"><span>Add #tags to organise records.</span><span><span id="chars">0</span> / 1000</span></div>
+    <div class="row"><span class="hint" style="margin:0 auto 0 0"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to save</span><button type="button" id="cancelBtn">Cancel</button><button type="submit" class="primary" id="saveBtn">Add record</button></div>
   </form>
 </dialog>
 
 <script>
   // Replace with your Vercel API URL if it ever changes
   const API = 'https://student-api-backend-eight.vercel.app/api';
-
+  const TAG = /(^|\s)#([\p{L}\d_-]{2,20})/gu;
   const $ = id => document.getElementById(id);
-  let records = [], selected = new Set(), editingId = null;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
 
-  function toast(msg, isError) {
-    const t = $('toast');
-    t.textContent = msg;
-    t.className = 'show' + (isError ? ' error' : '');
-    clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => { t.className = ''; }, 2600);
-  }
+  let records = [], selected = new Set(), pending = new Set(), batches = new Set();
+  let editing = null, lastIdx = null, limit = 12, view = store.get('view') || 'cards';
 
-  async function request(url, options) {
-    const res = await fetch(url, options);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Something went wrong');
-    return data;
-  }
-
-  function ask(title, text, okLabel) {
-    return new Promise(resolve => {
-      $('dlgTitle').textContent = title;
-      $('dlgText').textContent = text;
-      $('dlgOk').textContent = okLabel;
-      const dlg = $('confirm');
-      dlg.returnValue = '';
-      dlg.onclose = () => resolve(dlg.returnValue === 'ok');
-      dlg.showModal();
-    });
-  }
+  const tagsOf = r => [...r.content.matchAll(TAG)].map(m => m[2].toLowerCase());
+  const bodyOf = r => r.content.replace(TAG, '$1').replace(/[ \t]+\n/g, '\n').trim();
+  const hue = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
 
   function el(tag, props, kids) {
     const n = document.createElement(tag);
@@ -191,146 +160,236 @@
     (kids || []).forEach(k => n.appendChild(k));
     return n;
   }
+  function highlight(text, q) {
+    const f = document.createDocumentFragment();
+    if (!q) { f.append(text); return f; }
+    const low = text.toLowerCase(); let i = 0, j;
+    while ((j = low.indexOf(q, i)) !== -1) {
+      f.append(text.slice(i, j), el('mark', { textContent: text.slice(j, j + q.length) }));
+      i = j + q.length;
+    }
+    f.append(text.slice(i));
+    return f;
+  }
+  function ago(d) {
+    const s = (Date.now() - new Date(d)) / 1000;
+    if (s < 60) return 'just now';
+    for (const [n, u] of [[60, 'min'], [3600, 'hour'], [86400, 'day']]) {
+      const next = n === 60 ? 3600 : n === 3600 ? 86400 : 2592000;
+      if (s < next) { const v = Math.floor(s / n); return v + ' ' + u + (v > 1 ? 's' : '') + ' ago'; }
+    }
+    return new Date(d).toLocaleDateString();
+  }
 
+  /* ---------- toast ---------- */
+  let toastTimer, toastAction;
+  function toast(msg, opts) {
+    opts = opts || {};
+    const t = $('toast');
+    $('toastMsg').textContent = msg;
+    $('toastAct').hidden = !opts.undo;
+    toastAction = opts.undo;
+    t.className = 'show' + (opts.error ? ' error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = ''; }, opts.undo ? 5200 : 2600);
+  }
+  $('toastAct').onclick = () => { if (toastAction) toastAction(); $('toast').className = ''; };
+
+  /* ---------- api ---------- */
+  async function request(url, options) {
+    const res = await fetch(url, options);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+    return data;
+  }
   async function load() {
+    $('list').className = 'grid';
+    $('list').replaceChildren(...Array.from({ length: 6 }, () => el('div', { className: 'skel' })));
+    const wake = setTimeout(() => toast('Waking up the server, one moment...'), 3500);
     try {
       records = await request(API);
-      const ids = new Set(records.map(r => r._id));
-      selected = new Set([...selected].filter(id => ids.has(id)));
+      selected = new Set([...selected].filter(id => records.some(r => r._id === id)));
       render();
     } catch (e) {
-      $('list').replaceChildren(el('div', { className: 'empty', textContent: 'Could not load records. Check your connection, then refresh the page.' }));
+      const retry = el('button', { textContent: 'Try again' });
+      retry.onclick = load;
+      $('list').className = '';
+      $('list').replaceChildren(el('div', { className: 'state' }, [el('p', { textContent: 'Could not load records. Check your connection and try again.' }), retry]));
     }
+    clearTimeout(wake);
   }
 
+  /* ---------- filtering ---------- */
   function visible() {
     const q = $('search').value.trim().toLowerCase();
-    const out = records.filter(r => r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q));
+    const out = records.filter(r => !pending.has(r._id) && (!q || r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q)));
     const s = $('sort').value;
-    out.sort((a, b) =>
-      s === 'az' ? a.title.localeCompare(b.title) :
-      s === 'old' ? new Date(a.createdAt) - new Date(b.createdAt) :
-      new Date(b.createdAt) - new Date(a.createdAt));
-    return out;
+    return out.sort((a, b) => s === 'az' ? a.title.localeCompare(b.title) : s === 'old' ? new Date(a.createdAt) - new Date(b.createdAt) : new Date(b.createdAt) - new Date(a.createdAt));
   }
 
+  /* ---------- render ---------- */
   function render() {
-    const shown = visible();
-    $('count').textContent = shown.length + ' of ' + records.length + (records.length === 1 ? ' record' : ' records');
+    const q = $('search').value.trim().toLowerCase();
+    const live = records.filter(r => !pending.has(r._id));
+    const all = visible(), shown = all.slice(0, limit);
+    const today = new Date().toDateString();
+    const tagCount = {};
+    live.forEach(r => tagsOf(r).forEach(t => tagCount[t] = (tagCount[t] || 0) + 1));
+    $('sTotal').textContent = live.length;
+    $('sToday').textContent = live.filter(r => new Date(r.createdAt).toDateString() === today).length;
+    $('sTags').textContent = Object.keys(tagCount).length;
+    $('count').textContent = all.length + ' of ' + live.length + ' shown';
+
+    const bar = $('tagbar');
+    const top = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    bar.className = 'filterbar' + (top.length ? ' show' : '');
+    bar.replaceChildren(...top.map(([t, n]) => {
+      const c = el('button', { className: 'chip' + (q === '#' + t ? ' on' : ''), textContent: '#' + t + ' ' + n });
+      c.style.setProperty('--h', hue(t));
+      c.onclick = () => { $('search').value = q === '#' + t ? '' : '#' + t; limit = 12; render(); };
+      return c;
+    }));
 
     const list = $('list');
+    list.className = view === 'list' ? 'grid compact' : 'grid';
+    $('vCards').setAttribute('aria-pressed', view !== 'list');
+    $('vList').setAttribute('aria-pressed', view === 'list');
     list.replaceChildren();
-    if (shown.length === 0) {
-      list.appendChild(el('div', { className: 'empty', textContent: records.length ? 'No records match your search.' : 'No records yet. Add your first one on the left.' }));
+    if (!shown.length) {
+      list.className = '';
+      const msg = live.length ? 'No records match your search.' : 'No records yet. Create the first one.';
+      const kids = [el('p', { textContent: msg })];
+      if (!live.length) { const b = el('button', { className: 'primary', textContent: 'New record' }); b.onclick = () => openEditor(); kids.push(b); }
+      list.appendChild(el('div', { className: 'state' }, kids));
     } else {
-      shown.forEach(r => list.appendChild(r._id === editingId ? editCard(r) : viewCard(r)));
+      shown.forEach((r, i) => list.appendChild(card(r, i, shown, q)));
+    }
+    document.querySelectorAll('.more').forEach(n => n.remove());
+    if (all.length > shown.length) {
+      const more = el('button', { className: 'more', textContent: 'Show ' + Math.min(12, all.length - shown.length) + ' more' });
+      more.onclick = () => { limit += 12; render(); };
+      list.after(more);
     }
 
-    const n = shown.filter(r => selected.has(r._id)).length;
-    const all = $('selectAll');
-    all.checked = shown.length > 0 && n === shown.length;
-    all.indeterminate = n > 0 && n < shown.length;
-    all.disabled = shown.length === 0;
-
+    const n = all.filter(r => selected.has(r._id)).length;
+    $('selAll').checked = all.length > 0 && n === all.length;
+    $('selAll').indeterminate = n > 0 && n < all.length;
+    $('selAll').disabled = !all.length;
     $('selCount').textContent = selected.size + ' selected';
-    $('bulkbar').className = selected.size ? 'show' : '';
+    $('bulk').className = selected.size ? 'show' : '';
   }
 
-  function viewCard(r) {
+  function card(r, i, shown, q) {
     const box = el('input', { type: 'checkbox', checked: selected.has(r._id), ariaLabel: 'Select ' + r.title });
-    box.onchange = () => { box.checked ? selected.add(r._id) : selected.delete(r._id); render(); };
-    const edited = r.updatedAt !== r.createdAt ? ' (edited)' : '';
-    const del = el('button', { textContent: 'Delete', className: 'danger' });
-    del.onclick = () => removeOne(r, del);
-    const edit = el('button', { textContent: 'Edit' });
-    edit.onclick = () => { editingId = r._id; render(); };
-    return el('div', { className: 'card' + (selected.has(r._id) ? ' selected' : '') }, [
-      box,
-      el('div', { className: 'body' }, [
-        el('h3', { textContent: r.title }),
-        el('div', { className: 'when', textContent: new Date(r.createdAt).toLocaleString() + edited }),
-        el('p', { textContent: r.content }),
-        el('div', { className: 'row' }, [edit, del])
-      ])
-    ]);
-  }
-
-  function editCard(r) {
-    const title = el('input', { type: 'text', value: r.title, maxLength: 100 });
-    const content = el('textarea', { value: r.content, maxLength: 1000 });
-    const save = el('button', { textContent: 'Save changes', className: 'primary' });
-    const cancel = el('button', { textContent: 'Cancel' });
-    cancel.onclick = () => { editingId = null; render(); };
-    save.onclick = async () => {
-      if (!title.value.trim() || !content.value.trim()) return toast('Title and content are required', true);
-      save.disabled = true;
-      try {
-        await request(API + '?id=' + r._id, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: title.value, content: content.value })
-        });
-        editingId = null;
-        await load();
-        toast('Changes saved');
-      } catch (e) { toast(e.message, true); save.disabled = false; }
+    box.onclick = e => {
+      const ids = (e.shiftKey && lastIdx !== null) ? shown.slice(Math.min(lastIdx, i), Math.max(lastIdx, i) + 1).map(x => x._id) : [r._id];
+      ids.forEach(id => box.checked ? selected.add(id) : selected.delete(id));
+      lastIdx = i; render();
     };
-    return el('div', { className: 'card editing' }, [
-      el('label', { textContent: 'Title' }), title,
-      el('label', { textContent: 'Content' }), content,
-      el('div', { className: 'row' }, [save, cancel])
-    ]);
+    const main = el('div', { className: 'main' }, [el('h3', {}, [highlight(r.title, q)])]);
+    const body = bodyOf(r);
+    if (body) main.appendChild(el('p', {}, [highlight(body, q)]));
+    const tags = [...new Set(tagsOf(r))];
+    if (tags.length) main.appendChild(el('div', { className: 'tags' }, tags.map(t => {
+      const c = el('button', { className: 'chip', textContent: '#' + t });
+      c.style.setProperty('--h', hue(t));
+      c.onclick = () => { $('search').value = '#' + t; limit = 12; render(); };
+      return c;
+    })));
+    const edited = r.updatedAt !== r.createdAt ? ' (edited)' : '';
+    const time = el('time', { textContent: ago(r.createdAt) + edited, title: new Date(r.createdAt).toLocaleString() });
+    const edit = el('button', { textContent: 'Edit', className: 'ghost' }); edit.onclick = () => openEditor(r);
+    const del = el('button', { textContent: 'Delete', className: 'ghost danger' }); del.onclick = () => remove([r._id]);
+    return el('article', { className: 'card' + (selected.has(r._id) ? ' selected' : '') }, [box, main, el('div', { className: 'foot' }, [time, el('span', {}, [edit, del])])]);
   }
 
-  async function removeOne(r, btn) {
-    if (!(await ask('Delete this record?', '"' + r.title + '" will be removed permanently.', 'Delete'))) return;
-    btn.disabled = true;
-    try {
-      await request(API + '?id=' + r._id, { method: 'DELETE' });
-      selected.delete(r._id);
-      await load();
-      toast('Record deleted');
-    } catch (e) { toast(e.message, true); btn.disabled = false; }
-  }
-
-  async function removeSelected() {
-    const ids = [...selected];
-    const word = ids.length === 1 ? 'record' : 'records';
-    if (!(await ask('Delete ' + ids.length + ' ' + word + '?', 'This cannot be undone.', 'Delete ' + ids.length))) return;
-    $('delSel').disabled = true;
-    const results = await Promise.allSettled(ids.map(id => request(API + '?id=' + id, { method: 'DELETE' })));
-    const failed = results.filter(x => x.status === 'rejected').length;
-    $('delSel').disabled = false;
-    await load();
-    failed ? toast(failed + ' could not be deleted. Try again.', true) : toast(ids.length + ' ' + word + ' deleted');
-  }
-
-  $('selectAll').onchange = e => {
-    visible().forEach(r => e.target.checked ? selected.add(r._id) : selected.delete(r._id));
+  /* ---------- delete with undo ---------- */
+  function remove(ids) {
+    ids.forEach(id => { pending.add(id); selected.delete(id); });
+    const batch = { ids, done: false };
+    batch.timer = setTimeout(() => commit(batch), 5000);
+    batches.add(batch);
     render();
-  };
-  $('clearSel').onclick = () => { selected.clear(); render(); };
-  $('delSel').onclick = removeSelected;
-  $('search').oninput = render;
-  $('sort').onchange = render;
-  $('content').oninput = e => { $('chars').textContent = e.target.value.length; };
+    toast(ids.length + (ids.length === 1 ? ' record' : ' records') + ' deleted', { undo: () => {
+      clearTimeout(batch.timer); batches.delete(batch);
+      ids.forEach(id => pending.delete(id)); render();
+    } });
+  }
+  async function commit(batch) {
+    batch.done = true; batches.delete(batch);
+    const res = await Promise.allSettled(batch.ids.map(id => request(API + '?id=' + id, { method: 'DELETE' })));
+    const failed = batch.ids.filter((id, i) => res[i].status === 'rejected');
+    batch.ids.forEach(id => pending.delete(id));
+    records = records.filter(r => !batch.ids.includes(r._id) || failed.includes(r._id));
+    render();
+    if (failed.length) toast(failed.length + ' could not be deleted. They are back in the list.', { error: true });
+  }
+  addEventListener('pagehide', () => batches.forEach(b => !b.done && b.ids.forEach(id => fetch(API + '?id=' + id, { method: 'DELETE', keepalive: true }).catch(() => {}))));
 
-  $('dataForm').addEventListener('submit', async e => {
+  /* ---------- editor ---------- */
+  function openEditor(r) {
+    editing = r || null;
+    $('edTitle').textContent = r ? 'Edit record' : 'New record';
+    $('saveBtn').textContent = r ? 'Save changes' : 'Add record';
+    let d = { title: '', content: '' };
+    if (r) d = r; else { try { d = JSON.parse(store.get('draft')) || d; } catch (e) {} }
+    $('fTitle').value = d.title; $('fContent').value = d.content;
+    $('chars').textContent = d.content.length;
+    $('editor').showModal();
+    $('fTitle').focus();
+  }
+  function saveDraft() { if (!editing) store.set('draft', JSON.stringify({ title: $('fTitle').value, content: $('fContent').value })); }
+  $('fTitle').oninput = saveDraft;
+  $('fContent').oninput = e => { $('chars').textContent = e.target.value.length; saveDraft(); };
+  $('cancelBtn').onclick = () => $('editor').close();
+  $('form').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $('form').requestSubmit(); } };
+  $('form').onsubmit = async e => {
     e.preventDefault();
-    const btn = $('addBtn');
-    btn.disabled = true;
+    const btn = $('saveBtn'), label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Saving...';
     try {
-      await request(API, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: $('title').value, content: $('content').value })
-      });
-      e.target.reset();
-      $('chars').textContent = '0';
+      const body = JSON.stringify({ title: $('fTitle').value, content: $('fContent').value });
+      const opts = { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body };
+      await request(editing ? API + '?id=' + editing._id : API, opts);
+      if (!editing) store.del('draft');
+      $('editor').close();
+      toast(editing ? 'Changes saved' : 'Record added');
       await load();
-      toast('Record added');
-    } catch (err) { toast(err.message, true); }
-    btn.disabled = false;
-  });
+    } catch (err) { toast(err.message, { error: true }); }
+    btn.disabled = false; btn.textContent = label;
+  };
 
+  /* ---------- export ---------- */
+  $('exportBtn').onclick = () => {
+    const rows = selected.size ? records.filter(r => selected.has(r._id)) : visible();
+    const cell = v => { v = String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+    const csv = ['Title,Content,Created,Updated'].concat(rows.map(r => [r.title, r.content, r.createdAt, r.updatedAt].map(cell).join(','))).join('\r\n');
+    const a = el('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'student-records.csv' });
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('Exported ' + rows.length + (rows.length === 1 ? ' record' : ' records'));
+  };
+
+  /* ---------- wiring ---------- */
+  $('newBtn').onclick = () => openEditor();
+  $('search').oninput = () => { limit = 12; render(); };
+  $('sort').onchange = render;
+  $('vCards').onclick = () => { view = 'cards'; store.set('view', view); render(); };
+  $('vList').onclick = () => { view = 'list'; store.set('view', view); render(); };
+  $('selAll').onchange = e => { visible().forEach(r => e.target.checked ? selected.add(r._id) : selected.delete(r._id)); render(); };
+  $('clearSel').onclick = () => { selected.clear(); render(); };
+  $('delSel').onclick = () => remove([...selected]);
+  function syncTheme() { $('themeBtn').textContent = document.documentElement.dataset.theme === 'dark' ? 'Light mode' : 'Dark mode'; }
+  $('themeBtn').onclick = () => {
+    const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t; store.set('theme', t); syncTheme();
+  };
+  document.addEventListener('keydown', e => {
+    const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    if (e.key === '/' && !typing && !$('editor').open) { e.preventDefault(); $('search').focus(); }
+    else if (e.key.toLowerCase() === 'n' && !typing && !$('editor').open && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openEditor(); }
+    else if (e.key === 'Escape' && !$('editor').open) { if (document.activeElement === $('search') && $('search').value) { $('search').value = ''; render(); } else if (selected.size) { selected.clear(); render(); } }
+  });
+  syncTheme();
   load();
 </script>
 </body>
