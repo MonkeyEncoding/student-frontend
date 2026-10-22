@@ -70,6 +70,24 @@
   .compact .tags { margin-top:4px; }
   @media (max-width:640px) { .compact .card { grid-template-columns:auto 1fr; } .compact .foot { grid-column:1 / -1; } }
 
+  .lbl { display:block; font-weight:600; font-size:.88rem; margin-bottom:5px; }
+  .status { display:inline-block; font-size:.72rem; font-weight:700; padding:1px 9px; border-radius:999px; margin-left:8px; vertical-align:middle; }
+  .s-present { background:#d9f2e4; color:#12633a; }
+  .s-absent { background:#fbdcd6; color:#9a2a16; }
+  .s-late { background:#fcecc4; color:#7a5200; }
+  [data-theme=dark] .s-present { background:#1b4a35; color:#9ce8c2; }
+  [data-theme=dark] .s-absent { background:#512621; color:#ffb4a6; }
+  [data-theme=dark] .s-late { background:#4d3a10; color:#ffd77a; }
+  .pick { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; position:relative; }
+  dialog .pick input { position:absolute; opacity:0; pointer-events:none; width:1px; height:1px; padding:0; margin:0; }
+  dialog .pick label { margin:0; text-align:center; padding:10px 6px; border:2px solid var(--line); border-radius:10px; cursor:pointer; font-weight:700; background:var(--bg); }
+  dialog .pick input:focus-visible + label { outline:3px solid var(--accent); outline-offset:2px; }
+  .pick input:checked + .pk-present { background:#d9f2e4; color:#12633a; border-color:#12633a; }
+  .pick input:checked + .pk-absent { background:#fbdcd6; color:#9a2a16; border-color:#9a2a16; }
+  .pick input:checked + .pk-late { background:#fcecc4; color:#7a5200; border-color:#7a5200; }
+  [data-theme=dark] .pick input:checked + .pk-present { background:#1b4a35; color:#9ce8c2; border-color:#9ce8c2; }
+  [data-theme=dark] .pick input:checked + .pk-absent { background:#512621; color:#ffb4a6; border-color:#ffb4a6; }
+  [data-theme=dark] .pick input:checked + .pk-late { background:#4d3a10; color:#ffd77a; border-color:#ffd77a; }
   .skel { height:150px; border-radius:12px; background:linear-gradient(100deg,var(--panel) 30%,var(--tint) 50%,var(--panel) 70%); background-size:300% 100%; animation:sh 1.4s infinite; border:1px solid var(--line); }
   @keyframes sh { from { background-position:100% 0; } to { background-position:0 0; } }
   .state { text-align:center; padding:48px 16px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); }
@@ -101,7 +119,7 @@
   <div class="top">
     <div>
       <h1>Student Records</h1>
-      <div class="stats" aria-live="polite"><span><b id="sTotal">0</b> records</span><span><b id="sToday">0</b> added today</span><span><b id="sTags">0</b> tags</span></div>
+      <div class="stats" aria-live="polite"><span><b id="sTotal">0</b> records</span><span><b id="sToday">0</b> added today</span><span><b id="sPresent">0</b> present</span><span><b id="sAbsent">0</b> absent</span><span><b id="sLate">0</b> late</span></div>
     </div>
     <div class="actions">
       <button id="themeBtn" class="ghost" aria-label="Switch theme">Dark mode</button>
@@ -113,6 +131,7 @@
   <div class="bar">
     <div class="search"><input type="search" id="search" placeholder="Search titles, text or #tags" aria-label="Search records"><kbd>/</kbd></div>
     <select id="sort" aria-label="Sort records"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="az">Title A to Z</option></select>
+    <select id="statusFilter" aria-label="Filter by attendance"><option value="">All statuses</option><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option></select>
     <div class="seg" role="group" aria-label="View"><button id="vCards" aria-pressed="true">Cards</button><button id="vList" aria-pressed="false">Compact</button></div>
   </div>
 
@@ -127,6 +146,12 @@
 <dialog id="editor">
   <form id="form">
     <h2 id="edTitle">New record</h2>
+    <span class="lbl" id="stLabel">Attendance</span>
+    <div class="pick" role="radiogroup" aria-labelledby="stLabel">
+      <input type="radio" name="status" id="stP" value="present" checked><label for="stP" class="pk-present">Present</label>
+      <input type="radio" name="status" id="stA" value="absent"><label for="stA" class="pk-absent">Absent</label>
+      <input type="radio" name="status" id="stL" value="late"><label for="stL" class="pk-late">Late</label>
+    </div>
     <label for="fTitle">Title</label>
     <input id="fTitle" maxlength="100" required>
     <label for="fContent">Content</label>
@@ -141,6 +166,7 @@
   const API = 'https://student-api-backend-eight.vercel.app/api';
   const TAG = /(^|\s)#([\p{L}\d_-]{2,20})/gu;
   const $ = id => document.getElementById(id);
+  const STATUS = { present: 'Present', absent: 'Absent', late: 'Late' };
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
@@ -222,7 +248,8 @@
   /* ---------- filtering ---------- */
   function visible() {
     const q = $('search').value.trim().toLowerCase();
-    const out = records.filter(r => !pending.has(r._id) && (!q || r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q)));
+    const sf = $('statusFilter').value;
+    const out = records.filter(r => !pending.has(r._id) && (!sf || r.status === sf) && (!q || r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q)));
     const s = $('sort').value;
     return out.sort((a, b) => s === 'az' ? a.title.localeCompare(b.title) : s === 'old' ? new Date(a.createdAt) - new Date(b.createdAt) : new Date(b.createdAt) - new Date(a.createdAt));
   }
@@ -237,7 +264,7 @@
     live.forEach(r => tagsOf(r).forEach(t => tagCount[t] = (tagCount[t] || 0) + 1));
     $('sTotal').textContent = live.length;
     $('sToday').textContent = live.filter(r => new Date(r.createdAt).toDateString() === today).length;
-    $('sTags').textContent = Object.keys(tagCount).length;
+    ['present', 'absent', 'late'].forEach(k => { $('s' + k[0].toUpperCase() + k.slice(1)).textContent = live.filter(r => r.status === k).length; });
     $('count').textContent = all.length + ' of ' + live.length + ' shown';
 
     const bar = $('tagbar');
@@ -286,7 +313,9 @@
       ids.forEach(id => box.checked ? selected.add(id) : selected.delete(id));
       lastIdx = i; render();
     };
-    const main = el('div', { className: 'main' }, [el('h3', {}, [highlight(r.title, q)])]);
+    const h3 = el('h3', {}, [highlight(r.title, q)]);
+    if (STATUS[r.status]) h3.appendChild(el('span', { className: 'status s-' + r.status, textContent: STATUS[r.status] }));
+    const main = el('div', { className: 'main' }, [h3]);
     const body = bodyOf(r);
     if (body) main.appendChild(el('p', {}, [highlight(body, q)]));
     const tags = [...new Set(tagsOf(r))];
@@ -334,12 +363,14 @@
     let d = { title: '', content: '' };
     if (r) d = r; else { try { d = JSON.parse(store.get('draft')) || d; } catch (e) {} }
     $('fTitle').value = d.title; $('fContent').value = d.content;
+    (document.querySelector('input[name=status][value="' + (d.status || 'present') + '"]') || $('stP')).checked = true;
     $('chars').textContent = d.content.length;
     $('editor').showModal();
     $('fTitle').focus();
   }
-  function saveDraft() { if (!editing) store.set('draft', JSON.stringify({ title: $('fTitle').value, content: $('fContent').value })); }
+  function saveDraft() { if (!editing) store.set('draft', JSON.stringify({ title: $('fTitle').value, content: $('fContent').value, status: document.querySelector('input[name=status]:checked').value })); }
   $('fTitle').oninput = saveDraft;
+  document.querySelectorAll('input[name=status]').forEach(i => { i.onchange = saveDraft; });
   $('fContent').oninput = e => { $('chars').textContent = e.target.value.length; saveDraft(); };
   $('cancelBtn').onclick = () => $('editor').close();
   $('form').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $('form').requestSubmit(); } };
@@ -348,7 +379,7 @@
     const btn = $('saveBtn'), label = btn.textContent;
     btn.disabled = true; btn.textContent = 'Saving...';
     try {
-      const body = JSON.stringify({ title: $('fTitle').value, content: $('fContent').value });
+      const body = JSON.stringify({ title: $('fTitle').value, content: $('fContent').value, status: document.querySelector('input[name=status]:checked').value });
       const opts = { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body };
       await request(editing ? API + '?id=' + editing._id : API, opts);
       if (!editing) store.del('draft');
@@ -363,7 +394,7 @@
   $('exportBtn').onclick = () => {
     const rows = selected.size ? records.filter(r => selected.has(r._id)) : visible();
     const cell = v => { v = String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
-    const csv = ['Title,Content,Created,Updated'].concat(rows.map(r => [r.title, r.content, r.createdAt, r.updatedAt].map(cell).join(','))).join('\r\n');
+    const csv = ['Title,Status,Content,Created,Updated'].concat(rows.map(r => [r.title, r.status || '', r.content, r.createdAt, r.updatedAt].map(cell).join(','))).join('\r\n');
     const a = el('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'student-records.csv' });
     a.click(); URL.revokeObjectURL(a.href);
     toast('Exported ' + rows.length + (rows.length === 1 ? ' record' : ' records'));
@@ -373,6 +404,7 @@
   $('newBtn').onclick = () => openEditor();
   $('search').oninput = () => { limit = 12; render(); };
   $('sort').onchange = render;
+  $('statusFilter').onchange = () => { limit = 12; render(); };
   $('vCards').onclick = () => { view = 'cards'; store.set('view', view); render(); };
   $('vList').onclick = () => { view = 'list'; store.set('view', view); render(); };
   $('selAll').onchange = e => { visible().forEach(r => e.target.checked ? selected.add(r._id) : selected.delete(r._id)); render(); };
